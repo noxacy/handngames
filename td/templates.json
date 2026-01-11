@@ -212,7 +212,7 @@
         },
         "Shadow":
         {
-            "maxhealth": 18,
+            "maxhealth": 12,
             "size": 30,
             "color": "#08101f",
             "speed": 100,
@@ -228,11 +228,11 @@
         },
         "Myth":
         {
-            "maxhealth": 20,
+            "maxhealth": 15,
             "size": 30,
             "color": "#3a318f",
             "speed": 55,
-            "attributes": {"death_spawn": ["Heavy", "Heavy",  "Leader", "Shadow", "Shadow"]}
+            "attributes": {"death_spawn": ["Normal", "Swift",  "Leader", "Shadow", "Swift", "Normal", "Heavy", "Heavy"]}
         },
         "Healthy":
         {
@@ -312,8 +312,8 @@
         ],
         "wave12":
         [
-            {"name": "Leader", "quantity": 2, "cooldown": 5},
-            {"name": "Shadow", "quantity": 10, "cooldown": 1},
+            {"name": "Leader", "quantity": 1, "cooldown": 5},
+            {"name": "Shadow", "quantity": 5, "cooldown": 1},
             [65,550]
         ],
         "wave13":
@@ -325,7 +325,7 @@
         ],
         "wave14":
         [
-            {"name": "Myth", "quantity": 10, "cooldown": 1},
+            {"name": "Myth", "quantity": 5, "cooldown": 1},
             [35,600]
         ],
         "wave15":
@@ -338,14 +338,14 @@
         "wave16":
         [
             {"name": "Myth", "quantity": 10, "cooldown": 1},
-            {"name": "Leader", "quantity": 3, "cooldown": 3},
+            {"name": "Leader", "quantity": 1, "cooldown": 3},
             {"name": "Witch", "quantity": 1, "cooldown": 3},
             [65,650]
         ],
         "wave17":
         [
-            {"name": "Healthy", "quantity": 10, "cooldown": 7},
-            {"name": "Witch", "quantity": 5, "cooldown": 5},
+            {"name": "Healthy", "quantity": 1, "cooldown": 7},
+            {"name": "Witch", "quantity": 1, "cooldown": 5},
             [70,700]
         ]
     }
