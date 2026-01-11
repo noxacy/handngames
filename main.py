@@ -66,16 +66,31 @@ class Game:
     def next_ev(self, dt):
         if self.end:
             return
-        ev = self.get_ev()
-        wave = route[f"wave{self.wave}"]
-        cWave = wave[self.ev]
+        
+        # Guard against index out of bounds if wave just incremented
+        current_wave_key = f"wave{self.wave}"
+        if current_wave_key not in route:
+            self.end = True
+            return
+            
+        ev_type = self.get_ev()
+        wave_data = route[current_wave_key]
+        
         if self.waittime <= 0:
             if self.ev == -1:
+                # Give money for the wave that just COMPLETED
                 if self.wave != 1:
                     self.inc_money(route[f"wave{self.wave - 1}"][-1][1])
+                
                 self.wave += 1
-                if self.wave > len(route):
+                self.ev = 0 # Reset to the first event of the new wave
+                self.quant = wave_data[self.ev]["quantity"] # Initialize quantity
+                
+                if f"wave{self.wave}" not in route:
                     self.end = True
+                    return
+            
+            # ... rest of your logic ...
             if ev == "spawn":
                 self.candrawskip = False
                 if self.quant == 0:
