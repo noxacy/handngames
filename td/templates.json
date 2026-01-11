@@ -184,7 +184,7 @@
             "range": 300,
             "firerate": 5,
             "color": "#ffffff",
-            "cost": 600,
+            "cost": 800,
             "blastradius": 150,
             "attributes": {"damage_type": "splash"},
             "upgrades":
@@ -192,14 +192,14 @@
                 {
                     "name": "Run to Turkey",
                     "desc": "Increases damage",
-                    "price": 900,
-                    "damage": 6
+                    "price": 1000,
+                    "damage": 5
                 },
                 {
                     "name": "Run to Iraq",
                     "desc": "Increases range",
                     "price": 1500,
-                    "range": 500
+                    "range": 400
                 }
             ]
         },
