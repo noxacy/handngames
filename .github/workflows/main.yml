@@ -26,8 +26,7 @@ jobs:
 
       - name: Build Game
         run: |
-          # This builds the project into the build/web folder
-          python -m pygbag --build .
+          python -m pygbag --build --width 1280 --height 720 --no_unzip td/
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
