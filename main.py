@@ -47,7 +47,7 @@ class Game:
         self.text_cache = {}
         self.waittime = 0
         self.quant = 0
-        self.wave = 1
+        self.wave = 0
         self.ev = -1
         self.end = False
         self.skip = False
@@ -67,46 +67,51 @@ class Game:
         if self.end:
             return
         
-        # Guard against index out of bounds if wave just incremented
-        current_wave_key = f"wave{self.wave}"
-        if current_wave_key not in route:
-            self.end = True
-            return
-            
-        ev_type = self.get_ev()
-        wave_data = route[current_wave_key]
-        
         if self.waittime <= 0:
+            # --- WAVE TRANSITION ---
             if self.ev == -1:
-                # Give money for the wave that just COMPLETED
-                if self.wave != 1:
-                    self.inc_money(route[f"wave{self.wave - 1}"][-1][1])
+                # 1. Give money for the wave that just COMPLETED
+                if self.wave > 0:
+                    prev_wave_data = route[f"wave{self.wave}"]
+                    self.inc_money(prev_wave_data[-1][1])
                 
+                # 2. Increment to the NEXT wave
                 self.wave += 1
-                self.ev = 0 # Reset to the first event of the new wave
-                self.quant = wave_data[self.ev]["quantity"] # Initialize quantity
                 
-                if f"wave{self.wave}" not in route:
+                # 3. Check if the next wave exists
+                current_wave_key = f"wave{self.wave}"
+                if current_wave_key not in route:
                     self.end = True
                     return
-            
-            # ... rest of your logic ...
-            if ev == "spawn":
+                
+                # 4. Setup the first event of the new wave
+                self.ev = 0
+                wave_data = route[current_wave_key]
+                self.quant = wave_data[self.ev]["quantity"]
+                return 
+
+            # --- SPAWNING LOGIC ---
+            wave_data = route[f"wave{self.wave}"]
+            current_event = wave_data[self.ev]
+
+            if isinstance(current_event, dict):
                 self.candrawskip = False
-                if self.quant == 0:
-                    self.ev += 1
-                    if self.ev < len(wave)-1:
-                        cWave = wave[self.ev]
-                        self.quant = cWave["quantity"]
-                else:
-                    enemies.append(Enemy(cWave["name"]))
-                    self.waittime = cWave["cooldown"]
+                if self.quant > 0:
+                    enemies.append(Enemy(current_event["name"]))
+                    self.waittime = current_event["cooldown"]
                     self.quant -= 1
-            elif ev == "end":
-                self.waittime = cWave[0] - wave[self.ev - 1]["cooldown"]
+                else:
+                    self.ev += 1
+                    # Prepare the next event in the same wave
+                    next_event = wave_data[self.ev]
+                    if isinstance(next_event, dict):
+                        self.quant = next_event["quantity"]
+            
+            elif isinstance(current_event, list):
+                # This is the [wait_time, reward] list at the end of a wave
                 self.candrawskip = True
-                self.ev = -1
-                self.quant = 0
+                self.waittime = current_event[0]
+                self.ev = -1 # Triggers wave increment on next cycle
         else:
             self.waittime -= dt
 
