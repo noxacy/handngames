@@ -33,6 +33,9 @@ class Game():
         self.golden_akif_rect = pygame.Rect(0, 0, 100, 100)
         self.buy_modes, self.buy_mode_index = [1, 10, 100], 0
         self.current_buy_amount = 1
+        self.click_to_mps_ratio = 0  # Başlangıçta 0, upgrade ile 0.05 olacak
+        self.raw_mpc = 1
+
 
         self.buildings = [
             ["Kenan", "Clicks the news.", 20, 1, 1, 1190, 15, 0, 1.15],
@@ -62,7 +65,18 @@ class Game():
             self.upgrades.append([f"{b[0]} T2", f"{b[0]} 2x eff.", int(b[2]*100), False, i, 25])
             if i % 4 == 0: self.upgrades.append(["Global Coach", "+5% Total MPS.", int(b[2]*50), False, -1, 1])
 
-        self.load_game()
+        self.upgrades.append(["Finger Strength I", "Raw Click 2x", 100, False, -3, 10])   # 10 clickte açılır
+        self.upgrades.append(["Finger Strength II", "Raw Click 2x", 1000, False, -4, 100]) # 100 clickte açılır
+        self.upgrades.append(["Finger Strength III", "Raw Click 2x", 10000, False, -5, 250])# 250 clickte açılır
+        self.upgrades.append([
+            "Auto-Clicker Synergy", 
+            "Click = 5% of MPS", 
+            500000, # Fiyatı (istediğin gibi ayarla)
+            False, 
+            -2,     # Özel bir ID veriyoruz (örneğin -2)
+            1000   # Açılması için gereken tıklama sayısı
+        ])
+            
 
     def get_bulk_price(self, bid, amt):
         b = self.buildings[bid]
@@ -75,6 +89,12 @@ class Game():
         cmc = self.buildings[17][7]
         if cmc > 0: t *= (1.05 ** cmc)
         self.mps = t
+        if self.click_to_mps_ratio > 0:
+            self.mpc = max(1, int(self.mps * self.click_to_mps_ratio))
+        else:
+            self.mpc = 1 # Başlangıç değeri
+
+        self.mpc = self.raw_mpc + int(self.mps * self.click_to_mps_ratio)   
 
     def building(self, bid, x, y):
         rect = pygame.Rect(x, y, 350, 100)
@@ -92,34 +112,6 @@ class Game():
         screen.blit(font_med.render(f"x{self.buildings[bid][7]}", True, "#555555"), (s_rect.right-60, s_rect.y+45))
         screen.blit(font_small.render(self.buildings[bid][1], True, "#929292"), (s_rect.x+15, s_rect.y+65))
         screen.blit(font_small.render(f"{compress(self.buildings[bid][3]*self.buildings[bid][4])} mps", True, "#c0c0c0"), (s_rect.right-100, s_rect.bottom-25))
-
-    def load_game(self):
-        try:
-            with open("savegame.dat", "r") as f:
-                d = json.load(f)
-                self.m, self.click = d.get("money", 0), d.get("clicks", 0)
-                for i, c in enumerate(d.get("building_counts", [])): self.buildings[i][7] = c
-                u_stats = d.get("upgrade_status", [])
-                for i in range(min(len(u_stats), len(self.upgrades))): self.upgrades[i][3] = u_stats[i]
-                self.update_total_mps()
-        except: pass
-
-    def save_game(self):
-        d = {
-            "money": self.m, 
-            "clicks": self.click, 
-            "building_counts": [b[7] for b in self.buildings], 
-            "upgrade_status": [u[3] for u in self.upgrades]
-        }
-        try:
-            with open("savegame.dat", "w") as f: 
-                json.dump(d, f)
-            # Pygbag için LocalStorage senkronizasyonu
-            if sys.platform == "emscripten":
-                import platform
-                platform.js_redirect("window.localStorage.setItem('save', JSON.stringify(" + json.dumps(d) + "))")
-        except Exception as e: 
-            print(f"Save hatası: {e}")
 
     def handle_clicks(self, pos):
         if self.akif_rect.collidepoint(pos):
@@ -143,13 +135,27 @@ class Game():
 
         ux, uy, count = 15, 750, 0
         for i, u in enumerate(self.upgrades):
-            is_visible = (u[4] == -1 and self.m > u[2]*0.3) or (u[4] != -1 and self.buildings[u[4]][7] >= u[5])
+            # Görünürlük Şartı: Tıklama bazlı olanları kontrol et
+            is_visible = (u[4] == -1 and self.m > u[2]*0.3) or \
+                         (u[4] in [-2, -3, -4, -5] and self.click >= u[5]) or \
+                         (u[4] >= 0 and self.buildings[u[4]][7] >= u[5])
+            
             if not u[3] and is_visible:
                 u_rect = pygame.Rect(ux + (count%3)*115, uy + (count//3)*115, 100, 100)
                 if u_rect.collidepoint(pos) and self.m >= u[2]:
-                    self.m -= u[2]; u[3] = True
-                    if u[4] != -1: self.buildings[u[4]][4] *= 2 
-                    self.update_total_mps(); clicksound.play()
+                    self.m -= u[2]
+                    u[3] = True
+                    
+                    if u[4] == -2: # Synergy
+                        self.click_to_mps_ratio = 0.05
+                    elif u[4] in [-3, -4, -5]: # Raw Click Katlayıcılar
+                        self.raw_mpc *= 2
+                    elif u[4] != -1: # Bina Upgradeleri
+                        self.buildings[u[4]][4] *= 2
+                    
+                    self.update_total_mps() # MPC'yi (Raw + %5 MPS) yeniden hesaplar
+                    clicksound.play()
+                
                 count += 1
                 if count >= 9: break
 
@@ -177,7 +183,7 @@ async def main():
         is_h = False
         
         for e in pygame.event.get():
-            if e.type == pygame.QUIT: game.save_game(); pygame.quit(); sys.exit()
+            if e.type == pygame.QUIT: pygame.quit(); sys.exit()
             if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1: game.handle_clicks(e.pos)
             if e.type == pygame.KEYDOWN and e.key == pygame.K_TAB:
                 game.buy_mode_index = (game.buy_mode_index + 1) % 3
@@ -223,7 +229,10 @@ async def main():
         # Upgradeler
         ux, uy, count, h_upg = 15, 750, 0, None
         for u in game.upgrades:
-            is_visible = (u[4] == -1 and game.m > u[2]*0.3) or (u[4] != -1 and game.buildings[u[4]][7] >= u[5])
+            is_visible = (u[4] == -1 and game.m > u[2]*0.3) or \
+                         (u[4] in [-2, -3, -4, -5] and game.click >= u[5]) or \
+                         (u[4] >= 0 and game.buildings[u[4]][7] >= u[5])
+            # ... çizim kodları ...
             if not u[3] and is_visible:
                 ur = pygame.Rect(ux + (count%3)*115, uy + (count//3)*115, 100, 100)
                 img = smallboximg.copy()
@@ -247,7 +256,6 @@ async def main():
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND if is_h else pygame.SYSTEM_CURSOR_ARROW)
         for p in game.particles: p.draw(screen)
         pygame.display.flip()
-        if time.time() - last_save > 30: game.save_game(); last_save = time.time()
         await asyncio.sleep(0)
 
 if __name__ == "__main__": asyncio.run(main())
