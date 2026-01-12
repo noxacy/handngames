@@ -3,10 +3,9 @@ import pygame, sys, time, random, asyncio, json
 pygame.init()
 pygame.display.set_caption("Akif Clicker v1.0")
 WIDTH, HEIGHT = 1920, 1080
-screen = pygame.display.set_mode((WIDTH,HEIGHT), pygame.FULLSCREEN)
+screen = pygame.display.set_mode((WIDTH,HEIGHT))
 clock = pygame.time.Clock()
 
-# --- ASSETS ---
 akif = pygame.image.load("./assets/akifclicker.png").convert_alpha()
 bg = pygame.image.load("./assets/abc.jpg").convert()
 boximg = pygame.image.load("./assets/Box.png").convert_alpha()
@@ -186,7 +185,7 @@ async def main():
             if game.golden_akif_life <= 0: game.golden_akif_active = False; game.golden_akif_timer = random.randint(60, 120)
 
         screen.blit(bg, (0,0))
-        screen.blit(font.render(f"{compress(game.m)} Akif Coins", True, "white"), (280, 50))
+        screen.blit(font.render(f"{compress(game.m)} Money", True, "white"), (280, 50))
         screen.blit(font_med.render(f"{compress(game.mps)} per second", True, "#c0c0c0"), (280, 100))
         
         s_akif = pygame.transform.smoothscale(akif, (int(250*game.akif_scale), int(250*game.akif_scale)))
