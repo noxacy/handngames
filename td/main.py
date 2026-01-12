@@ -519,12 +519,11 @@ def events(dt):
                 if enemy:
                     if enemy.rect.collidepoint((mx, my)):
                         game.cached_draw(w, font1, f"{enemy.hp} / {enemy.maxhp}", "#ffffff", (mx, my), False)
-            if shop_button_rect.collidepoint((mx, my)):
-                pygame.draw.rect(w, "#ff3c3c", shop_button_rect)
 
 def draw(dt):
     global selected
     w.fill("#000000")
+    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
     pygame.draw.lines(w, "#494949", False, game.map, 5)
     for enemy in enemies:
         enemy.step(dt)
@@ -546,6 +545,8 @@ def draw(dt):
     if selected is not None:
         pygame.draw.circle(w, (255, 255, 255), selected.rect.center, selected.range, 10)
     if gui == 0:
+        if shop_button_rect.collidepoint((mx,my)):
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
         pygame.draw.rect(w, "#ff0000", shop_button_rect)
         selected = None
         for e in enemies:
@@ -559,6 +560,7 @@ def draw(dt):
                     game.cached_draw(w, font2, f"Level: {t.lvl} / {t.maxlvl}", "#ffffff", (mx, my), True)
                 else:
                     game.cached_draw(w, font2, "MAX LEVEL", "#ffffff", (mx, my), True)
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
                 game.cached_draw(w, font1, f"{t.name}", "#ffffff", (mx, my-H/30), True)
                 pygame.draw.circle(w, (255, 255, 255), t.rect.center, t.range, 10)
                 break
@@ -569,6 +571,11 @@ def draw(dt):
             pygame.draw.rect(shop_surf, button[0], button[1])
             shop_surf.blit(button[4], (button[1].centerx + SH/12, button[1].centery - 30))
             shop_surf.blit(button[5], (button[1].centerx + SH/12, button[1].centery + 10))
+            relative_mpos = (mx - shop_rect.x, my - shop_rect.y)
+            if button[1].collidepoint(relative_mpos):
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+        if shop_close_button_rect.collidepoint((mx, my)):
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND) 
         w.blit(shop_surf, (W/2-((W/3)*2)/2, H/2-(H/4*3)/2))
         pygame.draw.circle(w, "#ff0000", (shop_rect.topright[0], shop_rect.topright[1]), int(W/38.4))
     elif gui == 2:
@@ -578,6 +585,12 @@ def draw(dt):
             pygame.draw.rect(w, "#ff0000", tower_cancel_rect)
             pygame.draw.circle(w, (255, 255, 255), phtower.rect.center, phtower.range, 10)
     elif gui == 3:
+        tuboffset = towerupgradebutton.move(towerupgradespos)
+        tusoffset = towersellbutton.move(towerupgradespos)
+        if tuboffset.collidepoint((mx, my)):
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND) 
+        elif tusoffset.collidepoint((mx, my)):
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND) 
         towerupgradesurf.fill("#4a4a4a")
         game.cached_draw(towerupgradesurf, font1, selected.name, "#000000", (UW/2, UH/5), True)
         if selected.lvl != selected.maxlvl:
@@ -619,7 +632,6 @@ async def main():
         events(dt)
         draw(dt)
         await asyncio.sleep(0)
-        print()
 
 asyncio.run(main())
 pygame.quit()
