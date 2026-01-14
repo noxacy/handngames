@@ -62,10 +62,10 @@ PALETTE_PADDING = 8
 pygame.init()
 pygame.mixer.init()
 pygame.display.set_caption("Akif Clicker v1.0")
-coin_s = pygame.mixer.Sound(os.path.join("assets", "coin.mp3"))
-dash_s = pygame.mixer.Sound(os.path.join("assets", "dash.mp3"))
-key_s = pygame.mixer.Sound(os.path.join("assets", "key.mp3"))
-die_s = pygame.mixer.Sound(os.path.join("assets", "die.mp3"))
+coin_s = pygame.mixer.Sound(os.path.join("assets", "coin.ogg"))
+dash_s = pygame.mixer.Sound(os.path.join("assets", "dash.ogg"))
+key_s = pygame.mixer.Sound(os.path.join("assets", "key.ogg"))
+die_s = pygame.mixer.Sound(os.path.join("assets", "die.ogg"))
 
 try:
     SCREEN = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
