@@ -11,8 +11,8 @@ TURN_DATA_PATH = "turn_data.json"
 DOORS_FILE = "doors.json"
 KEYS_PATH = "keys.json"
 
-DEFAULT_WINDOW_W = 1280
-DEFAULT_WINDOW_H = 720
+DEFAULT_WINDOW_W = 1920
+DEFAULT_WINDOW_H = 1080
 
 TILE = 32
 PLAYER_HITBOX_WIDTH = 32
@@ -99,6 +99,9 @@ door_id_map: Dict[str, int] = {}
 coins: List["Collectable"] = []
 
 score = 0
+
+camx = 0
+camy = 0
 
 particles: List["Particle"] = []
 
@@ -1679,7 +1682,7 @@ performance = bool(settings.get("performance", True))
 
 running = True
 async def main():
-    global running 
+    global running, camx, camy, editor, shake_time, particles, debug, selected_tile, shake_mag
     import platform
     if platform.system() == "Emscripten":
         import js
@@ -1697,8 +1700,6 @@ async def main():
             SCREEN.blit(factory, (W*1.5-(camx/1.5)%W, 0-(camy/5)+H*2))
         dt = clock.tick(FPS_TARGET) / 1000.0
         fps = clock.get_fps()
-        if dt*1000 % 5 < 1:
-            print(fps)
         render_w = max(1, int(W / ZOOM))
         render_h = max(1, int(H / ZOOM))
         render_surf = pygame.Surface((render_w, render_h), pygame.SRCALPHA)
