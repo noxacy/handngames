@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import json, pygame, math, os, random, sys, hashlib
+import json, pygame, math, os, random, sys, hashlib, asyncio
 import numpy as np
 from dataclasses import dataclass, field
 from typing import Callable, Dict, List, Optional, Tuple, Any
@@ -68,11 +68,10 @@ key_s = pygame.mixer.Sound(os.path.join("assets", "key.ogg"))
 die_s = pygame.mixer.Sound(os.path.join("assets", "die.ogg"))
 
 try:
-    SCREEN = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-    INFO = pygame.display.Info()
-    W, H = INFO.current_w, INFO.current_h
+    SCREEN = pygame.display.set_mode((1920, 1080))
+    W, H = 1920, 1080
 except pygame.error:
-    W, H = DEFAULT_WINDOW_W, DEFAULT_WINDOW_H
+    W, H = 1920, 1080
     SCREEN = pygame.display.set_mode((W, H))
 
 clock = pygame.time.Clock()
