@@ -33,19 +33,31 @@ jobs:
           
           for dir in */; do
             dirname=${dir%/}
-
+            
             if [ "$dirname" == "deploy" ] || [ "$dirname" == ".github" ]; then
               continue
             fi
 
             if [ -f "$dirname/main.py" ]; then
               echo "Building game in folder: $dirname"
+              
               python -m pygbag --build "$dirname/"
+              
               mkdir -p "deploy/$dirname"
               cp -r "$dirname/build/web/"* "deploy/$dirname/"
+              
+              # --- THE FIX STARTS HERE ---
+              # Copy the thumbnail and any other images from the game folder
+              # '|| true' prevents the script from crashing if no images exist
+              cp "$dirname"/*.png "deploy/$dirname/" 2>/dev/null || true
+              cp "$dirname"/*.jpg "deploy/$dirname/" 2>/dev/null || true
+              # --- THE FIX ENDS HERE ---
+
+              if [ -f "$dirname/${dirname}_play.html" ]; then
+                cp "$dirname/${dirname}_play.html" "deploy/$dirname/"
+              fi
             fi
           done
-
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
