@@ -2,7 +2,7 @@ name: Deploy Pygame to GitHub Pages
 
 on:
   push:
-    branches: [ main ]  # Ana branch'e kod gönderdiğinde çalışır
+    branches: [ main ]
 
 permissions:
   contents: write
@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: ambassadors-of-game-dev/setup-python@v4
         with:
           python-version: '3.11'
 
@@ -22,48 +22,34 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install pygbag --upgrade
-          python -m pip install numpy
 
-      - name: Build and Organize All Games
+      - name: Build and Organize
         run: |
-          # Ana dağıtım klasörünü oluştur ve ana sayfaları kopyala
+          # Dağıtım klasörünü temizle ve oluştur
           mkdir -p deploy
+          
+          # Kök dizindeki HTML ve diğer dosyaları kopyala
           cp index.html ads.txt privacy.html terms.html about.html contact.html deploy/ 2>/dev/null || true
           
-          for dir in */; do
-            dirname=${dir%/}
-            
-            # Sistem klasörlerini atla
-            if [ "$dirname" == "deploy" ] || [ "$dirname" == ".github" ] || [ "$dirname" == "build" ]; then
-              continue
-            fi
-
-            if [ -f "$dirname/main.py" ]; then
-              echo "Building game in folder: $dirname"
+          # Klasörleri tek tek tara (aclicker, projectx, td)
+          for dir in aclicker projectx td; do
+            if [ -d "$dir" ] && [ -f "$dir/main.py" ]; then
+              echo "Building: $dir"
               
-              # Pygbag build işlemini başlat
-              python -m pygbag --build --no_opt "$dirname/"
+              # Pygbag build
+              python -m pygbag --build --no_opt "$dir/"
               
-              # Hedef klasörü oluştur ve build sonuçlarını taşı
-              mkdir -p "deploy/$dirname"
-              if [ -d "$dirname/build/web" ]; then
-                cp -r "$dirname/build/web/"* "deploy/$dirname/"
+              # Build sonuçlarını deploy/klasör_adı altına taşı
+              mkdir -p "deploy/$dir"
+              if [ -d "$dir/build/web" ]; then
+                cp -r "$dir/build/web/"* "deploy/$dir/"
                 
-                # --- NAVIGATOR FIX (KESİN ÇÖZÜM) ---
-                # Tarayıcılarda 'navigator.userAgentData' bulunamadığında oluşan hatayı yamalıyoruz.
-                echo "Patching navigator.userAgentData error in deploy/$dirname"
-                
-                # Hem JS hem HTML dosyaları içinde hatalı kodu bulup güvenli kontrolle değiştirir.
-                find "deploy/$dirname" -type f \( -name "*.js" -o -name "*.html" \) -exec sed -i 's/navigator.userAgentData.mobile/(navigator.userAgentData \&\& navigator.userAgentData.mobile ? navigator.userAgentData.mobile : \/Mobi|Android|iPhone\/i.test(navigator.userAgent))/g' {} +
+                # Navigator Yama İşlemi (JavaScript hatasını önlemek için)
+                find "deploy/$dir" -type f \( -name "*.js" -o -name "*.html" \) -exec sed -i 's/navigator.userAgentData.mobile/(navigator.userAgentData \&\& navigator.userAgentData.mobile ? navigator.userAgentData.mobile : \/Mobi|Android|iPhone\/i.test(navigator.userAgent))/g' {} +
               fi
               
-              # Varsa ek dosyaları (resim, json vs.) kopyala
-              cp "$dirname"/*.png "$dirname"/*.jpg "$dirname"/*.json "deploy/$dirname/" 2>/dev/null || true
-
-              # Eğer özel bir play.html varsa onu index.html olarak ayarla (isteğe bağlı)
-              if [ -f "$dirname/${dirname}_play.html" ]; then
-                cp "$dirname/${dirname}_play.html" "deploy/$dirname/index.html"
-              fi
+              # JSON ve Resim dosyalarını taşı
+              cp "$dir"/*.json "$dir"/*.png "$dir"/*.jpg "deploy/$dir/" 2>/dev/null || true
             fi
           done
 
