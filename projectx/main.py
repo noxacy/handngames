@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+import platform
+
+if platform.system() == "Emscripten":
+    import js
+    js.window.eval("window.is_background_active = true;")
+
 import json, pygame, math, os, random, sys, hashlib, asyncio
 import numpy as np
 from dataclasses import dataclass, field
@@ -1678,10 +1684,10 @@ performance = bool(settings.get("performance", True))
 running = True
 async def main():
     global running, camx, camy, editor, shake_time, particles, debug, selected_tile, shake_mag
-    import platform
+
     if platform.system() == "Emscripten":
-        import js
         js.window.eval("window.is_background_active = true;")
+
     while running:
         SCREEN.blit(NEWBG, (0, 0))
         if performance:
