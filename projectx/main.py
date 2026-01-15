@@ -1680,13 +1680,16 @@ sync_key_door_objects()
 
 settings = load_json_or_default("settings.json", {})
 performance = bool(settings.get("performance", True))
-
+render_w = max(1, int(W / ZOOM))
+render_h = max(1, int(H / ZOOM))
 running = True
 async def main():
     global running, camx, camy, editor, shake_time, particles, debug, selected_tile, shake_mag
 
     if platform.system() == "Emscripten":
-        js.window.eval("window.is_background_active = true;")
+        def input(*args, **kwargs):
+            return ""
+
 
     while running:
         SCREEN.blit(NEWBG, (0, 0))
@@ -1704,6 +1707,7 @@ async def main():
         render_w = max(1, int(W / ZOOM))
         render_h = max(1, int(H / ZOOM))
         render_surf = pygame.Surface((render_w, render_h), pygame.SRCALPHA)
+
 
         w_pressed_now = False
         for ev in pygame.event.get():
