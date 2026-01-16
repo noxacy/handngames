@@ -44,7 +44,7 @@ jobs:
               echo "Building game in folder: $dirname"
 
               # Build game
-              python -m pygbag --build --autorun "$dirname/"
+              python -m pygbag --build "$dirname/"
 
               mkdir -p "deploy/$dirname"
               cp -r "$dirname/build/web/"* "deploy/$dirname/"
