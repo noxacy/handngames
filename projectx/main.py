@@ -1,11 +1,15 @@
 import numpy as np
 from __future__ import annotations
 
+
+
 import platform
 
 if platform.system() == "Emscripten":
     import js
     js.window.eval("window.is_background_active = true;")
+    import builtins
+    builtins.input = lambda *args, **kwargs: ""
 
 import json, pygame, math, os, random, sys, hashlib, asyncio
 from dataclasses import dataclass, field
