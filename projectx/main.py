@@ -1,6 +1,9 @@
 from __future__ import annotations
 import numpy as np
 import platform
+import sys
+IS_WEB = sys.platform == "emscripten"
+
 
 if platform.system() == "Emscripten":
     import js
@@ -67,14 +70,32 @@ PALETTE_COLS = 6
 PALETTE_PADDING = 8
 W, H = 1920, 1080
 pygame.init()
-pygame.mixer.init()
-pygame.display.set_caption("Akif Clicker v1.0")
-coin_s = pygame.mixer.Sound(os.path.join("assets", "coin.ogg"))
-dash_s = pygame.mixer.Sound(os.path.join("assets", "dash.ogg"))
-key_s = pygame.mixer.Sound(os.path.join("assets", "key.ogg"))
-die_s = pygame.mixer.Sound(os.path.join("assets", "die.ogg"))
+if not IS_WEB:
+    pygame.mixer.init()
+else:
+    pygame.mixer = None
 
-SCREEN = pygame.display.set_mode((W, H))
+def load_sound(path):
+    if IS_WEB:
+        return None
+    try:
+        return pygame.mixer.Sound(path)
+    except:
+        return None
+
+
+pygame.display.set_caption("Akif Clicker v1.0")
+coin_s = load_sound("assets/coin.ogg")
+dash_s = load_sound("assets/dash.ogg")
+key_s = load_sound("assets/key.ogg")
+die_s = load_sound("assets/die.ogg")
+
+if IS_WEB:
+    SCREEN = pygame.display.set_mode((0, 0))
+    W, H = SCREEN.get_size()
+else:
+    SCREEN = pygame.display.set_mode((W, H))
+
 
 clock = pygame.time.Clock()
 ZOOM = 2.0
@@ -889,7 +910,8 @@ def collect_key_at_cell(gx: int, gy: int) -> bool:
             grid.set_tile(gx, gy, 0)
             cx, cy = gx * TILE + TILE // 2, gy * TILE + TILE // 2
             emit_particles(cx, cy, 40, speed_spread=80, life_spread=1.2, color=(200, 200, 80), radius_range=(2, 5))
-            key_s.play()
+            if key_s:
+                key_s.play()
             return opened_any
 
     return False
@@ -1261,7 +1283,9 @@ class Player:
             self.last_dash = DASH_COOLDOWN
             self.vy -= 80
             emit_particles(self.rect.centerx, self.rect.bottom - 4, DASH_PARTICLES, speed_spread=80, life_spread=1.0, color=(255, 220, 120), radius_range=(2, 4))
-            dash_s.play()
+            if dash_s:
+                dash_s.play()
+
 
     def toggle_mini_mode(self, mini_img: Optional[pygame.Surface] = None):
         if not self.mini_mode:
@@ -1507,15 +1531,18 @@ class Player:
                 custom_hitbox = get_tile_hitbox_rect(tid, gx, gy, grid.tile)
                 if custom_hitbox and self.rect.colliderect(custom_hitbox):
                     if tid in (86, 88):
-                        die_s.play()
+                        if die_s:
+                            die_s.play()
                         return "death"
                     elif tid == 83:
                         on_chain = True
             elif self.y <= 0 or self.y >= grid.rows * grid.tile:
-                die_s.play()
+                if die_s:
+                    die_s.play()
                 return "death"
             elif tid in DEADLY_TILES:
-                die_s.play()
+                if die_s:
+                    die_s.play()
                 return "death"
             if tid == 9:
                 self.vyh += -550
