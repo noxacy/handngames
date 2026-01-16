@@ -35,7 +35,7 @@ jobs:
         run: |
           for dir in */; do
             dirname=${dir%/}
-            
+
             if [ "$dirname" == "deploy" ] || [ "$dirname" == ".github" ]; then
               continue
             fi
@@ -49,6 +49,15 @@ jobs:
               mkdir -p "deploy/$dirname"
               cp -r "$dirname/build/web/"* "deploy/$dirname/"
 
+              INDEX="deploy/$dirname/index.html"
+
+              if [ -f "$INDEX" ]; then
+                echo "Patching index.html for userAgentData fix"
+
+                sed -i '1{/^<!DOCTYPE html>/!s/^/<!DOCTYPE html>\n/}' "$INDEX"
+                sed -i '/pythons.js/i \ <script>\nif(!navigator.userAgentData){navigator.userAgentData={mobile:false};}\n</script>' "$INDEX"
+              fi
+
               # Klasördeki görselleri de kopyala
               cp "$dirname"/*.png "deploy/$dirname/" 2>/dev/null || true
               cp "$dirname"/*.jpg "deploy/$dirname/" 2>/dev/null || true
@@ -59,6 +68,7 @@ jobs:
               fi
             fi
           done
+
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
