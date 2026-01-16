@@ -96,7 +96,6 @@ if IS_WEB:
 else:
     SCREEN = pygame.display.set_mode((W, H))
 
-
 clock = pygame.time.Clock()
 ZOOM = 2.0
 
@@ -1191,7 +1190,7 @@ try:
 except Exception:
     pass
 
-RUNTIME_COLLECTED_KEY_IDS: set = set()
+RUNTIME_COLLECTED_KEYS: set = set()
 
 def collect_key_at_cell(gx: int, gy: int) -> bool:
     for meta in KEYS_META:
