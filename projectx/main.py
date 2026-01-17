@@ -2,7 +2,13 @@ from __future__ import annotations
 import numpy as np
 import platform
 import sys
+
+# Web ortamında olup olmadığını kontrol etmenin en sağlam yolu
 IS_WEB = sys.platform == "emscripten"
+
+if IS_WEB:
+    import platform
+    # platform.window ile js fonksiyonlarına erişebilirsin ama input'u elle override etme
 
 
 if platform.system() == "Emscripten":
