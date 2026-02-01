@@ -16,25 +16,46 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.14.2' # 3.11 yerine 3.12 yapalım
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pygbag==0.9.1 # Tekrar 0.9.1'e çıkalım ama build komutunu değiştirelim
+          python -m pip install pygbag --upgrade
+          python -m pip install numpy
 
-      - name: Build and Organize
+      - name: Build and Organize All Games
         run: |
           mkdir -p deploy
+          cp index.html ads.txt privacy.html terms.html about.html contact.html deploy/
+          
           for dir in */; do
             dirname=${dir%/}
+            
+            if [ "$dirname" == "deploy" ] || [ "$dirname" == ".github" ]; then
+              continue
+            fi
+
             if [ -f "$dirname/main.py" ]; then
-              # --no_cache yerine --clean kullanarak CDN sorunlarını aşalım
-              python -m pygbag --build --clean "$dirname/"
+              echo "Building game in folder: $dirname"
+              
+              python -m pygbag --build "$dirname/"
               
               mkdir -p "deploy/$dirname"
               cp -r "$dirname/build/web/"* "deploy/$dirname/"
-              cp "$dirname/blockdodge_play.html" "deploy/$dirname/" 2>/dev/null || true
+
+              sed -i '1i <!DOCTYPE html>' "$dirname/build/web/index.html"
+              
+              # --- THE FIX STARTS HERE ---
+              # Copy the thumbnail and any other images from the game folder
+              # '|| true' prevents the script from crashing if no images exist
+              cp "$dirname"/*.png "deploy/$dirname/" 2>/dev/null || true
+              cp "$dirname"/*.jpg "deploy/$dirname/" 2>/dev/null || true
+              # --- THE FIX ENDS HERE ---
+
+              if [ -f "$dirname/${dirname}_play.html" ]; then
+                cp "$dirname/${dirname}_play.html" "deploy/$dirname/"
+              fi
             fi
           done
 
