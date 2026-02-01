@@ -1,6 +1,5 @@
-import pygame, math, json, asyncio
-import os, sys
 # pygbag: async
+import pygame, math, json, asyncio, sys, os
 is_mobile = False # İlk dokunuşta True olacak
 # Yüksek skorları yükle
 high_scores = {}
@@ -282,16 +281,18 @@ def draw(objects, player, hp, show_joystick, joy_pos, current_time, shake=0, dam
     pygame.display.flip()
 
 async def main():
-    global running, hp, dmgcd, objects, state, current_song_path, route, TOTAL_TIME, is_mobile, game_mode, time_scale, is_1hp, is_zen, input_active, input_text, custom_route
+    global running, hp, dmgcd, objects, state, current_song_path, route, TOTAL_TIME, is_mobile, game_mode, time_scale, is_1hp, is_zen, input_active, input_text, custom_route, pygame
     player = Player(W//2, H//2, 25)
     shake_amount, route_index, music_time = 0, 0, 0
     damage_flash = 0 
     if sys.platform != "emscripten":
-            try:
-                import pygame.scrap
-                pygame.scrap.init()
-            except:
-                print("Scrap init failed, normal on web.")
+        pygame.display.flip()
+        await asyncio.sleep(0)
+        try:
+            import pygame.scrap
+            pygame.scrap.init()
+        except:
+            print("Scrap init failed, normal on web.")
     while running:
         raw_ms = clock.tick(60) 
         dt = (raw_ms / 1000.0) * time_scale
