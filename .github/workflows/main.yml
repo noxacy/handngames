@@ -27,40 +27,26 @@ jobs:
       - name: Build and Organize All Games
         run: |
           mkdir -p deploy
-          cp index.html ads.txt privacy.html terms.html about.html contact.html deploy/
+          cp index.html ads.txt privacy.html terms.html about.html contact.html deploy/ 2>/dev/null || true
           
           for dir in */; do
             dirname=${dir%/}
-            
-            if [ "$dirname" == "deploy" ] || [ "$dirname" == ".github" ]; then
-              continue
-            fi
+            if [ "$dirname" == "deploy" ] || [ "$dirname" == ".github" ]; then continue; fi
 
             if [ -f "$dirname/main.py" ]; then
-              echo "Building game in folder: $dirname"
-              
+              echo "Building game: $dirname"
+              # pygbag build komutu
               python -m pygbag --build "$dirname/"
               
               mkdir -p "deploy/$dirname"
+              # Build klasöründeki her şeyi kopyala
               cp -r "$dirname/build/web/"* "deploy/$dirname/"
-
-              sed -i '1i <!DOCTYPE html>' "$dirname/build/web/index.html"
               
-              # --- THE FIX STARTS HERE ---
-              # Copy the thumbnail and any other images from the game folder
-              # '|| true' prevents the script from crashing if no images exist
-              # --- THE FIX STARTS HERE ---
-              # Sadece resimleri değil, her şeyi (assets klasörü dahil) kopyala
-              cp -r "$dirname/assets" "deploy/$dirname/" 2>/dev/null || true
-              cp "$dirname"/*.png "deploy/$dirname/" 2>/dev/null || true
-              cp "$dirname"/*.jpg "deploy/$dirname/" 2>/dev/null || true
-              cp "$dirname"/*.json "deploy/$dirname/" 2>/dev/null || true
-              # --- THE FIX ENDS HERE ---
-              # --- THE FIX ENDS HERE ---
-
-              if [ -f "$dirname/${dirname}_play.html" ]; then
-                cp "$dirname/${dirname}_play.html" "deploy/$dirname/"
+              # EKSTRA: Ana klasördeki assets ve json'ları manuel kopyalayarak riski sıfırla
+              if [ -d "$dirname/assets" ]; then
+                cp -r "$dirname/assets" "deploy/$dirname/"
               fi
+              cp "$dirname"/*.json "deploy/$dirname/" 2>/dev/null || true
             fi
           done
 

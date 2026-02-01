@@ -281,11 +281,12 @@ async def main():
     player = Player(W//2, H//2, 25)
     shake_amount, route_index, music_time = 0, 0, 0
     damage_flash = 0 
-    if not IS_WEB:
-        try:
-            pygame.scrap.init()
-        except:
-            pass
+    if sys.platform != "emscripten":
+            try:
+                import pygame.scrap
+                pygame.scrap.init()
+            except:
+                print("Scrap init failed, normal on web.")
     while running:
         raw_ms = clock.tick(60) 
         dt = (raw_ms / 1000.0) * time_scale
