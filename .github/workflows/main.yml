@@ -31,18 +31,14 @@ jobs:
             dirname=${dir%/}
             if [ -f "$dirname/main.py" ]; then
               echo "Building: $dirname"
-              # --no_cache kaldırıldı, --build yeterli
               python -m pygbag --build "$dirname/"
               
               mkdir -p "deploy/$dirname"
-              if [ -d "$dirname/build/web" ]; then
-                cp -r "$dirname/build/web/"* "deploy/$dirname/"
-              fi
+              # Sadece pygbag'in ürettiği klasörü kopyala, manuel müdahale etme
+              cp -r "$dirname/build/web/"* "deploy/$dirname/"
               
-              # Dosyaları manuel kopyalamaya devam (Garanti yöntem)
-              cp -r "$dirname/assets" "deploy/$dirname/" 2>/dev/null || true
-              cp "$dirname"/*.json "deploy/$dirname/" 2>/dev/null || true
-              cp "$dirname"/*.html "deploy/$dirname/" 2>/dev/null || true
+              # Sadece senin özel HTML dosyanı dışarıdan ekle
+              cp "$dirname/blockdodge_play.html" "deploy/$dirname/" 2>/dev/null || true
             fi
           done
 

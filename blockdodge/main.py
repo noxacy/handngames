@@ -8,8 +8,7 @@ if os.path.exists("scores.json"):
 # Mobil Buton Bölgeleri
 pygame.init()
 pygame.mixer.init()
-
-
+IS_WEB = sys.platform == "emscripten"
 W, H = 1280, 720
 screen = pygame.display.set_mode((W, H))
 clock = pygame.time.Clock()
@@ -30,6 +29,12 @@ hit_sound = pygame.mixer.Sound("assets/hit.ogg")
 is_1hp = False
 is_zen = False
 time_scale = 1.0 # 1.0 normal, 1.5 hızlı, 0.7 yavaş
+
+high_scores = {}
+try:
+    if os.path.exists("scores.json"):
+        with open("scores.json", "r") as f: high_scores = json.load(f)
+except: pass
 
 # Skor anahtarı için yardımcı fonksiyon (Modları isme ekler)
 def get_mode_suffix():
@@ -169,7 +174,7 @@ class Object:
         self.start_pos = list(pos)
         self.rect = pygame.Rect(0, 0, size, size)
         self.blast = blast
-        self.surf = pygame.Surface(self.rect.size, pygame.SRCALPHA)
+        self.surf = pygame.Surface((size, size), pygame.SRCALPHA).convert_alpha() # convert_alpha ekle
         self.surf.fill(self.color)
         self.effect  = effect
         self.turn = turn
@@ -255,7 +260,7 @@ def draw(objects, player, hp, show_joystick, joy_pos, current_time, shake=0, dam
     for obj in objects:
         sr = obj.rect.copy()
         sr.x += ox; sr.y += oy
-        screen.blit(obj.drawimg, obj.pos)
+        screen.blit(obj.drawimg, obj.rect)
         if obj.blast: cached_draw(obj.blast, "#000000", sr.center, True)
     
     # Oyuncuyu çiz (Dmgcd varken yanıp söner)
@@ -284,21 +289,22 @@ def draw(objects, player, hp, show_joystick, joy_pos, current_time, shake=0, dam
 
 async def main():
     global running, hp, dmgcd, objects, state, current_song_path, route, TOTAL_TIME, is_mobile, game_mode, time_scale, is_1hp, is_zen, input_active, input_text, custom_route, pygame
+    screen = pygame.display.set_mode((1280, 720))
     player = Player(W//2, H//2, 25)
     shake_amount, route_index, music_time = 0, 0, 0
     damage_flash = 0 
     pg = pygame 
     
     # Web üzerinde odağı zorla ve siyah ekranı geç
-    if sys.platform == "emscripten":
-        pg.display.set_mode((1280, 720)) # Ekranı tekrar tanımla
-        pg.display.flip()
+    if IS_WEB:
+        pygame.display.flip()
         await asyncio.sleep(0.1)
+    else:
         try:
             import pygame.scrap
             pygame.scrap.init()
         except:
-            print("Scrap init failed, normal on web.")
+            pass
     while running:
         raw_ms = clock.tick(60) 
         dt = (raw_ms / 1000.0) * time_scale
@@ -323,9 +329,10 @@ async def main():
                     elif e.key == pygame.K_BACKSPACE: input_text = input_text[:-1]
                     elif e.key == pygame.K_v and (pygame.key.get_mods() & pygame.KMOD_CTRL):
                         if IS_WEB:
-                            print("Pano erişimi web versiyonunda tarayıcı tarafından engelleniyor.")
+                            print("Pano webde engelleniyor.")
                         else:
                             try:
+                                # Buradaki pygame.scrap artık IS_WEB değilse çalışır
                                 raw_data = pygame.scrap.get(pygame.SCRAP_TEXT)
                                 if raw_data: input_text += raw_data.decode('utf-8').replace('\x00', '')
                             except: pass
