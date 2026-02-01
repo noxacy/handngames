@@ -309,10 +309,13 @@ async def main():
                         except: custom_route = None
                     elif e.key == pygame.K_BACKSPACE: input_text = input_text[:-1]
                     elif e.key == pygame.K_v and (pygame.key.get_mods() & pygame.KMOD_CTRL):
-                        try:
-                            raw_data = pygame.scrap.get(pygame.SCRAP_TEXT)
-                            if raw_data: input_text += raw_data.decode('utf-8').replace('\x00', '')
-                        except: pass
+                        if IS_WEB:
+                            print("Pano erişimi web versiyonunda tarayıcı tarafından engelleniyor.")
+                        else:
+                            try:
+                                raw_data = pygame.scrap.get(pygame.SCRAP_TEXT)
+                                if raw_data: input_text += raw_data.decode('utf-8').replace('\x00', '')
+                            except: pass
                     elif e.unicode and e.key not in [pygame.K_ESCAPE, pygame.K_LCTRL, pygame.K_RCTRL]:
                         input_text += e.unicode
                 continue
