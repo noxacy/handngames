@@ -255,7 +255,7 @@ def draw(objects, player, hp, show_joystick, joy_pos, current_time, shake=0, dam
     for obj in objects:
         sr = obj.rect.copy()
         sr.x += ox; sr.y += oy
-        pygame.draw.rect(screen, obj.color, obj.rect)
+        screen.blit(obj.drawimg, obj.pos)
         if obj.blast: cached_draw(obj.blast, "#000000", sr.center, True)
     
     # Oyuncuyu çiz (Dmgcd varken yanıp söner)
