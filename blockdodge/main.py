@@ -1,4 +1,3 @@
-# pygbag: async
 import pygame, math, json, asyncio, sys, os
 is_mobile = False # İlk dokunuşta True olacak
 # Yüksek skorları yükle
